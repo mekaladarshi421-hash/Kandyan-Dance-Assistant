@@ -513,7 +513,7 @@
 
         <div class="video-box">
             <div class="canvas-container">
-                <video id="input_video" style="display:none;"></video>
+                <video id="input_video" playsinline webkit-playsinline muted style="display:none;"></video>
                 <canvas id="output_canvas" width="640" height="480"></canvas>
             </div>
 
@@ -858,16 +858,26 @@
 
         pose.onResults(onResults);
 
+        // With this robust, iOS-friendly setup:
         const camera = new Camera(videoElement, {
             onFrame: async () => {
                 await pose.send({ image: videoElement });
             },
             width: 640,
-            height: 480
+            height: 480,
+            facingMode: 'user'
         });
 
-        updateUI();
-        camera.start();
+        // Explicitly handle video playing permissions for iOS Safari
+        videoElement.addEventListener('loadedmetadata', () => {
+            videoElement.play().catch(e => console.error("Video play error:", e));
+        });
+
+        camera.start().catch(err => {
+            console.error("Camera access failed:", err);
+            statusText.innerText = "❌ Camera access denied. Please allow camera permissions in Safari.";
+            statusText.style.color = "#ff4444";
+        });
     </script>
 
 </body>
