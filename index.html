@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kandyan Dance Assistant - Modules</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: #c59b27;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        .card-grid {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            border: 2px solid #c59b27;
+            border-radius: 12px;
+            width: 260px;
+            padding: 20px;
+            text-align: left;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(197, 155, 39, 0.3);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #00ffcc;
+        }
+
+        .card p {
+            font-size: 13px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .start-btn {
+            display: block;
+            text-align: center;
+            background: #c59b27;
+            color: #121212;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Kandyan Dance Assistant</h1>
+    <p>Select a movement set below to start practicing</p>
+
+    <div class="card-grid">
+
+        <div class="card">
+            <h3>Goda Saraba</h3>
+            <p>Foundational postures focusing on arms and legs bending and basic standing forms.</p>
+            <a href="Goda Saraba/set1.html" class="start-btn">Start Practice →</a>
+        </div>
+
+        <div class="card">
+            <h3>Paa Saraba</h3>
+            <p>Foundational postures focusing on arms and legs bending and basic standing forms.</p>
+            <a href="Paa Saraba/set1.html" class="start-btn">Start Practice →</a>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

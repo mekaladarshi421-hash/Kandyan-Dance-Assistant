@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kandyan Dance Assistant - Goda Saraba Set 1</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 15px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Top-Right Mute Button */
+        .mute-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #1e1e1e;
+            border: 2px solid #c59b27;
+            color: #c59b27;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .mute-btn:hover {
+            background: #c59b27;
+            color: #121212;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            margin-top: 15px;
+            max-width: 1100px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .sidebar {
+            background-color: #1e1e1e;
+            border: 2px solid #c59b27;
+            border-radius: 10px;
+            padding: 15px;
+            width: 320px;
+            flex-shrink: 0;
+            text-align: left;
+        }
+
+        .video-box {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+        }
+
+        video,
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            border: 3px solid #c59b27;
+            object-fit: cover;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #status {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ffcc;
+            margin-top: 5px;
+        }
+
+        /* Controls & Buttons */
+        .mode-container,
+        .control-container,
+        .extra-control-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .mode-btn,
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #555;
+            background: #2a2a2a;
+            color: #aaa;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 11px;
+        }
+
+        .mode-btn.active-mode {
+            border-color: #c59b27;
+            background: #c59b27;
+            color: #121212;
+        }
+
+        .action-btn {
+            border-color: #c59b27;
+            color: #c59b27;
+        }
+
+        .action-btn:hover {
+            background: #c59b27;
+            color: #121212;
+        }
+
+        .action-btn.paused {
+            background: #ff9900;
+            border-color: #ff9900;
+            color: #121212;
+        }
+
+        .action-btn.next-set-btn {
+            background: #00ffcc;
+            border-color: #00ffcc;
+            color: #121212;
+        }
+
+        .action-btn.next-set-btn:hover {
+            background: #00cca3;
+            border-color: #00cca3;
+        }
+
+        .reference-box {
+            width: 100%;
+            height: 180px;
+            border-radius: 8px;
+            border: 2px dashed #c59b27;
+            overflow: hidden;
+            margin-top: 8px;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .reference-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Large Display Below Canvas */
+        .timer-badge-large {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff0055;
+            background: #1e1e1e;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            line-height: 74px;
+            margin-top: 15px;
+            border: 4px solid #ff0055;
+            text-align: center;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .badge-correct {
+            color: #00ffcc !important;
+            border-color: #00ffcc !important;
+            box-shadow: 0px 0px 20px rgba(0, 255, 204, 0.4);
+        }
+
+        /* Comparison Dashboard Table */
+        .comparison-table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            font-size: 12px;
+            background: #2a2a2a;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 6px 8px;
+            text-align: center;
+            border-bottom: 1px solid #3a3a3a;
+        }
+
+        .comparison-table th {
+            background-color: #333;
+            color: #c59b27;
+        }
+
+        .joint-match {
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+        .joint-mismatch {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .record-box {
+            background: #282008;
+            border: 1px solid #ff9900;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 11px;
+            color: #ffcc66;
+            display: none;
+        }
+
+        .calibration-output {
+            width: 100%;
+            height: 45px;
+            background-color: #0d0d0d;
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 10px;
+            padding: 4px;
+            box-sizing: border-box;
+            margin-top: 5px;
+            resize: none;
+        }
+
+        /* Modal Overlay for Completion */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            border: 3px solid #c59b27;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0px 0px 30px rgba(197, 155, 39, 0.4);
+            animation: modalPop 0.3s ease-out;
+        }
+
+        @keyframes modalPop {
+            0% {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2 {
+            color: #00ffcc;
+            font-size: 28px;
+            margin-top: 0;
+        }
+
+        .modal-content p {
+            color: #ddd;
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            background-color: #c59b27;
+            color: #121212;
+            border: none;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex: 1;
+        }
+
+        .modal-btn:hover {
+            background-color: #e5b332;
+        }
+
+        .modal-btn.btn-next {
+            background-color: #00ffcc;
+            color: #121212;
+        }
+
+        .modal-btn.btn-next:hover {
+            background-color: #00cca3;
+        }
+
+        /* Top-Right Home Button */
+        .home-btn {
+            position: absolute;
+            top: 15px;
+            right: 70px;
+            /* Positioned right next to the mute button */
+            background: #1e1e1e;
+            border: 2px solid #c59b27;
+            color: #c59b27;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 100;
+            text-decoration: none;
+        }
+
+        .home-btn:hover {
+            background: #c59b27;
+            color: #121212;
+        }
+
+        /* Mobile & Tablet Responsive Styles */
+        @media (max-width: 768px) {
+            .home-btn {
+                top: 10px;
+                right: 52px;
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .mute-btn {
+                top: 10px;
+                right: 10px;
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .main-layout {
+                flex-direction: column-reverse;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-width: 640px;
+            }
+
+            #status {
+                font-size: 18px;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <!-- Top-Right Action Buttons -->
+    <a href="../index.html" class="home-btn" title="Go to Home">🏠</a>
+    <button id="btn-mute" class="mute-btn" onclick="toggleMute()" title="Toggle Sound">🔊</button>
+
+    <h1>Kandyan Dance Assistant - Goda Saraba Set 1</h1>
+    <div id="status">Loading AI Model & Camera...</div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+
+            <!-- Difficulty Mode Buttons -->
+            <div class="mode-container">
+                <button id="btn-beginner" class="mode-btn active-mode" onclick="setDifficulty('beginner')">🌱 Beginner
+                    (2s)</button>
+                <button id="btn-expert" class="mode-btn" onclick="setDifficulty('expert')">🔥 Expert (5s)</button>
+            </div>
+
+            <!-- Primary Action Controls -->
+            <div class="control-container">
+                <button class="action-btn" onclick="resetPractice()">🔄 Reset</button>
+                <button id="btn-pause" class="action-btn" onclick="togglePause()">⏸️ Pause</button>
+                <button class="action-btn" onclick="skipPose()">⏩ Skip</button>
+            </div>
+
+            <!-- Secondary Control Row -->
+            <div class="extra-control-container">
+                <button class="action-btn" onclick="toggleCalibration()">🛠️ Calib</button>
+                <button class="action-btn next-set-btn" onclick="goToNextSet()">▶️ Set 2</button>
+            </div>
+
+            <h3 id="level-title" style="color: #c59b27; margin: 0;">Pose 1 of 6</h3>
+            <h4 id="pose-name" style="margin: 4px 0;">Pose Name</h4>
+
+            <!-- Reference Image -->
+            <div class="reference-box">
+                <img id="ref-image" src="" alt="Reference Pose Image" />
+            </div>
+
+            <!-- Real-Time Comparison Table -->
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Joint</th>
+                        <th>Live Angle</th>
+                        <th>Target</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Left Elbow</td>
+                        <td id="live-le">0°</td>
+                        <td id="target-le">0°</td>
+                    </tr>
+                    <tr>
+                        <td>Right Elbow</td>
+                        <td id="live-re">0°</td>
+                        <td id="target-re">0°</td>
+                    </tr>
+                    <tr>
+                        <td>Left Knee</td>
+                        <td id="live-lk">0°</td>
+                        <td id="target-lk">0°</td>
+                    </tr>
+                    <tr>
+                        <td>Right Knee</td>
+                        <td id="live-rk">0°</td>
+                        <td id="target-rk">0°</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Toggleable Calibration Box -->
+            <div id="record-box" class="record-box">
+                <strong>💡 CALIBRATION KEY:</strong><br />
+                Press <b>[SPACEBAR]</b> to extract angles:
+                <textarea id="copy-box" class="calibration-output" readonly
+                    placeholder="Press Spacebar to capture..."></textarea>
+            </div>
+        </div>
+
+        <div class="video-box">
+            <div class="canvas-container">
+                <video id="input_video" style="display:none;"></video>
+                <canvas id="output_canvas" width="640" height="480"></canvas>
+            </div>
+
+            <!-- Large Display Below Canvas -->
+            <div id="timer-display" class="timer-badge-large">2</div>
+        </div>
+    </div>
+
+    <!-- Completion Modal -->
+    <div id="completion-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Congratulations! 🎉</h2>
+            <p>You have successfully mastered all 6 poses in Set 1!</p>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="resetPractice()">Play Again 🔄</button>
+                <button class="modal-btn btn-next" onclick="goToNextSet()">Next Set ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation Function
+        function goToNextSet() {
+            window.location.href = 'set2.html';
+        }
+
+        // Audio Effects Configuration
+        const audioWarning = new Audio('../sounds/posewarning.mp3');
+        const audioCountdown = new Audio('../sounds/countdown.mp3');
+        const audioCompleted = new Audio('../sounds/posecompleted.mp3');
+        const audioSetSuccess = new Audio('../sounds/setsucces.mp3');
+
+        audioCountdown.loop = true;
+
+        let isMuted = false;
+        let isPaused = false;
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btnMute = document.getElementById('btn-mute');
+            btnMute.innerText = isMuted ? '🔇' : '🔊';
+
+            audioWarning.muted = isMuted;
+            audioCountdown.muted = isMuted;
+            audioCompleted.muted = isMuted;
+            audioSetSuccess.muted = isMuted;
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const btnPause = document.getElementById('btn-pause');
+
+            if (isPaused) {
+                btnPause.innerText = '▶️ Resume';
+                btnPause.classList.add('paused');
+                stopAllAudio();
+                statusText.innerText = "⏸️ Session Paused";
+                statusText.style.color = "#ff9900";
+            } else {
+                btnPause.innerText = '⏸️ Pause';
+                btnPause.classList.remove('paused');
+                holdStartTime = null;
+            }
+        }
+
+        function stopAllAudio() {
+            audioWarning.pause();
+            audioWarning.currentTime = 0;
+            audioCountdown.pause();
+            audioCountdown.currentTime = 0;
+        }
+
+        function playWarningAudio() {
+            if (isMuted || isPaused) return;
+            audioCountdown.pause();
+            audioCountdown.currentTime = 0;
+            if (audioWarning.paused) {
+                audioWarning.play().catch(() => { });
+            }
+        }
+
+        function playCountdownAudio() {
+            if (isMuted || isPaused) return;
+            audioWarning.pause();
+            audioWarning.currentTime = 0;
+            if (audioCountdown.paused) {
+                audioCountdown.play().catch(() => { });
+            }
+        }
+
+        const videoElement = document.getElementById('input_video');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+
+        const statusText = document.getElementById('status');
+        const levelTitle = document.getElementById('level-title');
+        const poseName = document.getElementById('pose-name');
+        const refImage = document.getElementById('ref-image');
+        const timerDisplay = document.getElementById('timer-display');
+        const copyBox = document.getElementById('copy-box');
+        const recordBox = document.getElementById('record-box');
+        const completionModal = document.getElementById('completion-modal');
+
+        // UI Buttons
+        const btnBeginner = document.getElementById('btn-beginner');
+        const btnExpert = document.getElementById('btn-expert');
+
+        // Dashboard Elements
+        const liveLE = document.getElementById('live-le');
+        const liveRE = document.getElementById('live-re');
+        const liveLK = document.getElementById('live-lk');
+        const liveRK = document.getElementById('live-rk');
+
+        const targetLE = document.getElementById('target-le');
+        const targetRE = document.getElementById('target-re');
+        const targetLK = document.getElementById('target-lk');
+        const targetRK = document.getElementById('target-rk');
+
+        let currentAngles = { leftElbow: 0, rightElbow: 0, leftKnee: 0, rightKnee: 0 };
+
+        // DIFFICULTY CONFIGURATION
+        let selectedDifficulty = 'beginner';
+        let holdDuration = 2000;
+        let activeTolerance = 25;
+
+        function setDifficulty(mode) {
+            selectedDifficulty = mode;
+            holdStartTime = null;
+            stopAllAudio();
+
+            if (mode === 'beginner') {
+                holdDuration = 2000;
+                activeTolerance = 25;
+                btnBeginner.classList.add('active-mode');
+                btnExpert.classList.remove('active-mode');
+                timerDisplay.innerText = "2";
+            } else {
+                holdDuration = 5000;
+                activeTolerance = 15;
+                btnExpert.classList.add('active-mode');
+                btnBeginner.classList.remove('active-mode');
+                timerDisplay.innerText = "5";
+            }
+        }
+
+        // RESET PRACTICE FUNCTION
+        function resetPractice() {
+            currentPoseIndex = 0;
+            holdStartTime = null;
+            levelCompleted = false;
+
+            if (isPaused) {
+                togglePause();
+            }
+
+            stopAllAudio();
+            completionModal.style.display = "none";
+            timerDisplay.classList.remove("badge-correct");
+            timerDisplay.innerText = selectedDifficulty === 'beginner' ? "2" : "5";
+            updateUI();
+        }
+
+        // SKIP POSE FUNCTION
+        function skipPose() {
+            if (levelCompleted) return;
+            currentPoseIndex = (currentPoseIndex + 1) % poseSequence.length;
+            holdStartTime = null;
+            stopAllAudio();
+            timerDisplay.classList.remove("badge-correct");
+            timerDisplay.innerText = selectedDifficulty === 'beginner' ? "2" : "5";
+            updateUI();
+        }
+
+        // TOGGLE CALIBRATION BOX
+        function toggleCalibration() {
+            if (recordBox.style.display === "none" || recordBox.style.display === "") {
+                recordBox.style.display = "block";
+            } else {
+                recordBox.style.display = "none";
+            }
+        }
+
+        // CALIBRATED DATA ARRAY
+        const poseSequence = [
+            { id: 1, name: "Pose 1", imageSrc: "images/set1/1.jpg", targetLE: 29, targetRE: 28, targetLK: 128, targetRK: 124 },
+            { id: 2, name: "Pose 2", imageSrc: "images/set1/2.jpg", targetLE: 16, targetRE: 11, targetLK: 115, targetRK: 129 },
+            { id: 3, name: "Pose 3", imageSrc: "images/set1/3.jpg", targetLE: 11, targetRE: 4, targetLK: 155, targetRK: 87 },
+            { id: 4, name: "Pose 4", imageSrc: "images/set1/4.jpg", targetLE: 31, targetRE: 28, targetLK: 137, targetRK: 132 },
+            { id: 5, name: "Pose 5", imageSrc: "images/set1/5.jpg", targetLE: 31, targetRE: 1, targetLK: 105, targetRK: 146 },
+            { id: 6, name: "Pose 6", imageSrc: "images/set1/6.jpg", targetLE: 44, targetRE: 57, targetLK: 126, targetRK: 121 }
+        ];
+
+        let currentPoseIndex = 0;
+        let holdStartTime = null;
+        let levelCompleted = false;
+
+        function calculateAngle(a, b, c) {
+            if (!a || !b || !c) return 0;
+            const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+            let angle = Math.abs((radians * 180.0) / Math.PI);
+            if (angle > 180.0) angle = 360.0 - angle;
+            return Math.round(angle);
+        }
+
+        function updateUI() {
+            if (currentPoseIndex >= poseSequence.length) {
+                levelCompleted = true;
+                stopAllAudio();
+                if (!isMuted) {
+                    audioSetSuccess.play().catch(() => { });
+                }
+
+                levelTitle.innerText = "COMPLETED!";
+                poseName.innerText = "All 6 Poses Mastered! 🎉";
+                refImage.style.display = "none";
+                statusText.innerText = "🏆 6-Pose Sequence Complete!";
+                statusText.style.color = "#00FF00";
+                timerDisplay.innerText = "✓";
+                timerDisplay.classList.add("badge-correct");
+
+                completionModal.style.display = "flex";
+                return;
+            }
+
+            refImage.style.display = "block";
+            const activePose = poseSequence[currentPoseIndex];
+            levelTitle.innerText = `Pose ${activePose.id} of ${poseSequence.length}`;
+            poseName.innerText = activePose.name;
+            refImage.src = activePose.imageSrc;
+
+            targetLE.innerText = `${activePose.targetLE}°`;
+            targetRE.innerText = `${activePose.targetRE}°`;
+            targetLK.innerText = `${activePose.targetLK}°`;
+            targetRK.innerText = `${activePose.targetRK}°`;
+        }
+
+        function updateJointStatus(element, liveVal, targetVal, tol) {
+            element.innerText = `${liveVal}°`;
+            if (Math.abs(liveVal - targetVal) <= tol) {
+                element.className = "joint-match";
+            } else {
+                element.className = "joint-mismatch";
+            }
+        }
+
+        // Spacebar Calibration Output
+        document.addEventListener('keydown', function (event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                const formattedCode = `{ id: ${currentPoseIndex + 1}, name: "Pose ${currentPoseIndex + 1}", imageSrc: "images/set1/${currentPoseIndex + 1}.jpg", targetLE: ${currentAngles.leftElbow}, targetRE: ${currentAngles.rightElbow}, targetLK: ${currentAngles.leftKnee}, targetRK: ${currentAngles.rightKnee} },`;
+                copyBox.value = formattedCode;
+                copyBox.select();
+            }
+        });
+
+        function onResults(results) {
+            if (levelCompleted) return;
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (isPaused) {
+                canvasCtx.restore();
+                return;
+            }
+
+            if (results.poseLandmarks) {
+                const landmarks = results.poseLandmarks;
+
+                drawConnectors(canvasCtx, landmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 3 });
+                drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 3 });
+
+                currentAngles.leftElbow = calculateAngle(landmarks[11], landmarks[13], landmarks[15]);
+                currentAngles.rightElbow = calculateAngle(landmarks[12], landmarks[14], landmarks[16]);
+                currentAngles.leftKnee = calculateAngle(landmarks[23], landmarks[25], landmarks[27]);
+                currentAngles.rightKnee = calculateAngle(landmarks[24], landmarks[26], landmarks[28]);
+
+                const p = poseSequence[currentPoseIndex];
+
+                updateJointStatus(liveLE, currentAngles.leftElbow, p.targetLE, activeTolerance);
+                updateJointStatus(liveRE, currentAngles.rightElbow, p.targetRE, activeTolerance);
+                updateJointStatus(liveLK, currentAngles.leftKnee, p.targetLK, activeTolerance);
+                updateJointStatus(liveRK, currentAngles.rightKnee, p.targetRK, activeTolerance);
+
+                const isLEGood = Math.abs(currentAngles.leftElbow - p.targetLE) <= activeTolerance;
+                const isREGood = Math.abs(currentAngles.rightElbow - p.targetRE) <= activeTolerance;
+                const isLKGood = Math.abs(currentAngles.leftKnee - p.targetLK) <= activeTolerance;
+                const isRKGood = Math.abs(currentAngles.rightKnee - p.targetRK) <= activeTolerance;
+
+                if (isLEGood && isREGood && isLKGood && isRKGood) {
+                    playCountdownAudio();
+                    statusText.innerText = `✓ Hold Form (${selectedDifficulty.toUpperCase()})...`;
+                    statusText.style.color = "#00FF00";
+                    timerDisplay.classList.add("badge-correct");
+
+                    if (!holdStartTime) holdStartTime = Date.now();
+
+                    const elapsedTime = Date.now() - holdStartTime;
+                    const remainingSeconds = Math.ceil((holdDuration - elapsedTime) / 1000);
+                    timerDisplay.innerText = Math.max(0, remainingSeconds);
+
+                    if (elapsedTime >= holdDuration) {
+                        stopAllAudio();
+                        if (!isMuted) {
+                            audioCompleted.play().catch(() => { });
+                        }
+                        currentPoseIndex++;
+                        holdStartTime = null;
+                        updateUI();
+                    }
+
+                } else {
+                    playWarningAudio();
+                    holdStartTime = null;
+                    statusText.innerText = "Match red numbers to target angles";
+                    statusText.style.color = "#FFDD00";
+                    timerDisplay.classList.remove("badge-correct");
+                    timerDisplay.innerText = selectedDifficulty === 'beginner' ? "2" : "5";
+                }
+
+            } else {
+                playWarningAudio();
+                statusText.innerText = "Full body must be visible in frame!";
+                statusText.style.color = "#FFDD00";
+                holdStartTime = null;
+                timerDisplay.innerText = selectedDifficulty === 'beginner' ? "2" : "5";
+            }
+            canvasCtx.restore();
+        }
+
+        const pose = new Pose({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+        });
+
+        pose.setOptions({
+            modelComplexity: 1,
+            smoothLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        pose.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await pose.send({ image: videoElement });
+            },
+            width: 640,
+            height: 480
+        });
+
+        updateUI();
+        camera.start();
+    </script>
+
+</body>
+
+</html>
